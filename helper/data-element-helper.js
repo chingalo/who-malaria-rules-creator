@@ -3,6 +3,7 @@ const Promise = require('promise');
 const _ = require('lodash');
 
 async function getAllDataElements(headers, serverAddress) {
+    console.log("Discovering available template data elememts")
     const url = serverAddress + "/api/dataElements.json?fields=id,name,description"
     return new Promise(resolve => {
         request({

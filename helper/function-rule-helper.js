@@ -1,6 +1,7 @@
 const request = require('request');
 const Promise = require('promise');
 const _ = require('lodash');
+const fileHelper = require("./file-helper")
 
 async function getFunctionRules(indicators, dataElements, dataItems) {
     let rules = [];
@@ -67,8 +68,12 @@ async function getFunctionRules(indicators, dataElements, dataItems) {
 }
 
 async function getFunctionFromServer(headers, serverAddress) {
-    const url = serverAddress + "/api/dataStore/functions/whoMalariafnt";
-    return new Promise((resolve, reject) => {
+    console.log("Discovering available who malaria function's confifuration")
+    const url = serverAddress + "/api/dataStore/functions/whoMalariafn";
+    const path = "config/default-function.js";
+    let defaultFunction = await fileHelper.readFromFile(path);
+    defaultFunction["rules"] = [];
+    return new Promise((resolve) => {
         request({
                 headers: headers,
                 uri: url,
@@ -76,14 +81,40 @@ async function getFunctionFromServer(headers, serverAddress) {
             },
             (error, response, body) => {
                 if (!error && response && response.statusCode === 200) {
-                    resolve(JSON.parse(body))
+                    resolve(JSON.parse(body));
                 } else {
-                    console.log(body)
-                    reject({})
+                    request({
+                            headers: headers,
+                            uri: url,
+                            method: 'POST',
+                            body: JSON.stringify(defaultFunction)
+                        },
+                        (error, response, body) => {
+                            resolve(defaultFunction);
+                        }
+                    );
                 }
             }
         );
     })
+}
+
+async function updateFunction(headers, serverAddress, functionPayload) {
+    console.log("Update who malaria function'configuration")
+    const url = serverAddress + "/api/dataStore/functions/whoMalariafn";
+    return new Promise((resolve) => {
+        request({
+                headers: headers,
+                uri: url,
+                method: 'PUT',
+                body: JSON.stringify(functionPayload)
+            },
+            (error, response, body) => {
+                resolve();
+            }
+        );
+    })
+
 }
 
 function getJsonExpression(numerator, denominator, factor) {
@@ -122,5 +153,6 @@ function getJsonNamesMapping(dataElemnts, expressionUids) {
 
 module.exports = {
     getFunctionRules,
-    getFunctionFromServer
+    getFunctionFromServer,
+    updateFunction
 }
