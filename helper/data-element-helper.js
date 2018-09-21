@@ -4,7 +4,7 @@ const _ = require('lodash');
 
 async function getAllDataElements(headers, serverAddress) {
     console.log("Discovering available template data elememts")
-    const url = serverAddress + "/api/dataElements.json?fields=id,name,description"
+    const url = serverAddress + "/api/dataElements.json?paging=false&fields=id,name,description"
     return new Promise(resolve => {
         request({
                 headers: headers,
